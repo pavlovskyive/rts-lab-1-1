@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+    <script src="./random-signal-generator.js"></script>
+</head>
+
+<body>
+    <canvas id="myChart" width="800" height="400"></canvas>
+    <p id="mean"></p>
+    <p id="variance"></p>
+    <script>
+        let generator = new RandomSignalGenerator(8, 1200, 1024)
+
+        var mean = document.getElementById('mean')
+        var standartDeviation = document.getElementById('variance')
+
+        mean.innerHTML = `Mean: ${generator.mean}`
+        standartDeviation.innerHTML = `Variance: ${generator.variance}`
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels:  Array(generator.signals.length).fill(""),
+                datasets: [{
+                    label: 'Random Signal',
+                    fill: false,
+                    lineTension: 0,
+                    data: generator.signals,
+                    backgroundColor: ['rgba(0, 0, 0, 0)'],
+                    borderColor: ['rgba(255, 99, 132, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            suggestedMin: -1,
+                            suggestedMax: 1
+                        }
+                    }]
+                },
+                elements: {
+                    point:{
+                        radius: 0
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
