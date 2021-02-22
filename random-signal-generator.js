@@ -4,7 +4,8 @@ class RandomSignalGenerator {
     this.frequencyCutoff = frequencyCutoff;
     this.discreteSamplesNumber = discreteSamplesNumber;
 
-    this.signals = this.generateSignals();
+    this.signals = [];
+    this.signalsJSON = {};
   }
 
   calculateSignal(amplitude, frequency, time, phase) {
@@ -27,6 +28,25 @@ class RandomSignalGenerator {
     }
 
     return signals;
+  }
+
+  generateSignalsJSON() {
+    let signalsJSON = { }
+
+    for (let i = 1; i <= this.harmonicsNumber; i++) {
+      let frequency = (i * this.frequencyCutoff) / this.harmonicsNumber;
+
+      let phase = Math.random();
+      let amplitude = Math.random();
+
+      for (let time = 0; time < this.discreteSamplesNumber; time++) {
+        let signal = this.calculateSignal(amplitude, frequency, time, phase);
+        if (signalsJSON[time] == undefined) { signalsJSON[time] = 0 }
+        signalsJSON[time] += signal;
+      }
+    }
+
+    return JSON.stringify(signalsJSON);
   }
 
   get mean() {

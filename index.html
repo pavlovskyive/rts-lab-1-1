@@ -17,6 +17,7 @@
     <p id="variance"></p>
     <script>
         let generator = new RandomSignalGenerator(8, 1200, 1024)
+        generator.signals = generator.generateSignals()
 
         var mean = document.getElementById('mean')
         var standartDeviation = document.getElementById('variance')
@@ -55,6 +56,25 @@
                 }
             }
         });
+    </script>
+
+    <script>
+
+        let testGenerator = new RandomSignalGenerator(8, 1200, 1024)
+
+        var t0Array = performance.now()
+        for (let i = 0; i < 10000; i++) {
+            testGenerator.generateSignals()
+        }
+        var t1Array = performance.now()
+        console.log("Call to generate 10000 signals in array took " + (t1Array - t0Array) + " milliseconds.")
+
+        var t0JSON = performance.now()
+        for (let i = 0; i < 10000; i++) {
+            testGenerator.generateSignalsJSON()
+        }
+        var t1JSON = performance.now()
+        console.log("Call to generate 10000 signals in JSON object took " + (t1JSON - t0JSON) + " milliseconds.")
     </script>
 </body>
 
