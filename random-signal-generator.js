@@ -39,6 +39,15 @@ const variance = (signals) => {
     .reduce((prev, curr) => prev + curr, 0) / (signals.length - 1)
 }
 
+// На самом деле это ковариация, просто исходя из терминов в методичке, было написано что это корреляция.
+// Довольно часто в анлоязычной литературе под понятие ковариации подставляют корреляцию, а вместо привычной нам
+//   корреляции -- "нормированую" корреляцию. 
+
+// (Выдержка из википедии: It is common practice in some disciplines (e.g. statistics and time series analysis) 
+//   to normalize the cross-correlation function to get a time-dependent Pearson correlation coefficient. 
+// However, in other disciplines (e.g. engineering) the normalization is usually dropped and the terms "cross-correlation" and 
+//  "cross-covariance" are used interchangeably.)
+
 const correlate = (signals1, signals2) => {
   const n = signals1.length
   const M1 = mean(signals1)
@@ -56,6 +65,16 @@ const correlate = (signals1, signals2) => {
   console.log(correlation[0])
   return correlation
 }
+
+// Описанная раньше нормированная корреляция:
+// Описание разницы с anomaly.io: 
+
+// Normalized Cross-Correlation
+// There are three problems with cross-correlation:
+// It is difficult to understand the scoring value.
+// Both metrics must have the same amplitude. If Graph B has the same shape as Graph A but values two times smaller, the correlation will not be detected.
+// Due to the formula, a zero value will not be taken into account.
+// To solve these problems we use normalized cross-correlation:
 
 const correlateNormal = (signals1, signals2) => {
   const n = signals1.length
