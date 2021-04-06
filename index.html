@@ -9,47 +9,36 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
     <script src="./random-signal-generator.js"></script>
+    <script src="https://unpkg.com/mathjs@9.3.0/lib/browser/math.js"></script>
 </head>
 
 <body>
     <canvas id="signals" width="800" height="400"></canvas>
-    <canvas id="correlation" width="800" height="400"></canvas>
-    <canvas id="autocorrelation" width="800" height="400"></canvas>
-    <canvas id="normal-correlation" width="800" height="400"></canvas>
-    <canvas id="normal-autocorrelation" width="800" height="400"></canvas>
+    <canvas id="dft" width="800" height="400"></canvas>
+    <canvas id="fft" width="800" height="400"></canvas>
 
     <script>
         let generator = new RandomSignalGenerator(8, 1200, 1024)
-        let signals1 = generator.generateSignals()
-        let signals2 = generator.generateSignals()
+        let signals = generator.generateSignals()
 
-        let correlation = correlate(signals1, signals2)
-        let autocorrelation = correlate(signals1, signals1)
+        let dfts = dft(signals).map((complex) => complexMagnitude(complex) * 2 / 1024)
+        let ffts = fft(signals).map((complex) => complexMagnitude(complex) * 2 / 1024)
 
-        let normalCorrelation = correlateNormal(signals1, signals2)
-        let normalAutocorrelation = correlateNormal(signals1, signals1)
+        console.log(dfts)
+        console.log(ffts)
 
         var ctx1 = document.getElementById('signals').getContext('2d');
         var myChart1 = new Chart(ctx1, {
             type: 'line',
             data: {
-                labels:  Array(signals1.length).fill(""),
+                labels:  Array(signals.length).fill(""),
                 datasets: [{
                     label: 'Random Signals 1',
                     fill: false,
                     lineTension: 0,
-                    data: signals1,
+                    data: signals,
                     backgroundColor: ['rgba(0, 0, 0, 0)'],
                     borderColor: ['rgba(255, 99, 132, 1)'],
-                    borderWidth: 1
-                },
-                {
-                    label: 'Random Signals 2',
-                    fill: false,
-                    lineTension: 0,
-                    data: signals2,
-                    backgroundColor: ['rgba(0, 0, 0, 0)'],
-                    borderColor: ['rgba(88, 99, 255, 1)'],
                     borderWidth: 1
                 }]
             },
@@ -70,16 +59,16 @@
             }
         });
 
-        var ctx2 = document.getElementById('correlation').getContext('2d');
+        var ctx2 = document.getElementById('dft').getContext('2d');
         var myChart2 = new Chart(ctx2, {
             type: 'line',
             data: {
-                labels:  Array(correlation.length).fill(""),
+                labels:  Array(dfts.length).fill(""),
                 datasets: [{
-                    label: 'Correlation',
+                    label: 'DFT',
                     fill: false,
                     lineTension: 0,
-                    data: correlation,
+                    data: dfts,
                     backgroundColor: ['rgba(0, 0, 0, 0)'],
                     borderColor: ['rgba(255, 99, 132, 1)'],
                     borderWidth: 1
@@ -89,7 +78,7 @@
                 scales: {
                     yAxes: [{
                         ticks: {
-                            suggestedMin: -1,
+                            suggestedMin: 0,
                             suggestedMax: 1
                         }
                     }]
@@ -102,16 +91,16 @@
             }
         });
 
-        var ctx3 = document.getElementById('autocorrelation').getContext('2d');
+        var ctx3 = document.getElementById('fft').getContext('2d');
         var myChart3 = new Chart(ctx3, {
             type: 'line',
             data: {
-                labels:  Array(autocorrelation.length).fill(""),
+                labels:  Array(ffts.length).fill(""),
                 datasets: [{
-                    label: 'Autocorrelation',
+                    label: 'FFT',
                     fill: false,
                     lineTension: 0,
-                    data: autocorrelation,
+                    data: ffts,
                     backgroundColor: ['rgba(0, 0, 0, 0)'],
                     borderColor: ['rgba(255, 99, 132, 1)'],
                     borderWidth: 1
@@ -121,71 +110,7 @@
                 scales: {
                     yAxes: [{
                         ticks: {
-                            suggestedMin: -1,
-                            suggestedMax: 1
-                        }
-                    }]
-                },
-                elements: {
-                    point:{
-                        radius: 0
-                    }
-                }
-            }
-        });
-
-        var ctx4 = document.getElementById('normal-correlation').getContext('2d');
-        var myChart4 = new Chart(ctx4, {
-            type: 'line',
-            data: {
-                labels:  Array(normalCorrelation.length).fill(""),
-                datasets: [{
-                    label: 'Normal Correlation',
-                    fill: false,
-                    lineTension: 0,
-                    data: normalCorrelation,
-                    backgroundColor: ['rgba(0, 0, 0, 0)'],
-                    borderColor: ['rgba(255, 99, 132, 1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: -1,
-                            suggestedMax: 1
-                        }
-                    }]
-                },
-                elements: {
-                    point:{
-                        radius: 0
-                    }
-                }
-            }
-        });
-
-        var ctx5 = document.getElementById('normal-autocorrelation').getContext('2d');
-        var myChart5 = new Chart(ctx5, {
-            type: 'line',
-            data: {
-                labels:  Array(normalAutocorrelation.length).fill(""),
-                datasets: [{
-                    label: 'Normal Autocorrelation',
-                    fill: false,
-                    lineTension: 0,
-                    data: normalAutocorrelation,
-                    backgroundColor: ['rgba(0, 0, 0, 0)'],
-                    borderColor: ['rgba(255, 99, 132, 1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: -1,
+                            suggestedMin: 0,
                             suggestedMax: 1
                         }
                     }]

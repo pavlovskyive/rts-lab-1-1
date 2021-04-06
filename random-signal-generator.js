@@ -30,69 +30,107 @@ class RandomSignalGenerator {
   }
 }
 
-const mean = (signals) => signals.reduce((prev, curr) => prev + curr, 0) / signals.length
+const mean = (signals) =>
+  signals.reduce((prev, curr) => prev + curr, 0) / signals.length;
 
 const variance = (signals) => {
-  let Mx = mean(signals)
+  let Mx = mean(signals);
 
-  return signals.map((num) => Math.pow(num - Mx, 2))
-    .reduce((prev, curr) => prev + curr, 0) / (signals.length - 1)
+  return (
+    signals
+      .map((num) => Math.pow(num - Mx, 2))
+      .reduce((prev, curr) => prev + curr, 0) /
+    (signals.length - 1)
+  );
+};
+
+function createComplex(real, imag) {
+  return {
+    real: real,
+    imag: imag,
+  };
 }
 
-// На самом деле это ковариация, просто исходя из терминов в методичке, было написано что это корреляция.
-// Довольно часто в анлоязычной литературе под понятие ковариации подставляют корреляцию, а вместо привычной нам
-//   корреляции -- "нормированую" корреляцию. 
+const complexAdd = function (a, b) {
+  return [a[0] + b[0], a[1] + b[1]];
+};
 
-// (Выдержка из википедии: It is common practice in some disciplines (e.g. statistics and time series analysis) 
-//   to normalize the cross-correlation function to get a time-dependent Pearson correlation coefficient. 
-// However, in other disciplines (e.g. engineering) the normalization is usually dropped and the terms "cross-correlation" and 
-//  "cross-covariance" are used interchangeably.)
+const complexSubtract = function (a, b) {
+  return [a[0] - b[0], a[1] - b[1]];
+};
 
-const correlate = (signals1, signals2) => {
-  const n = signals1.length
-  const M1 = mean(signals1)
-  const M2 = mean(signals2)
+const complexMultiply = function (a, b) {
+  return [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]];
+};
 
-  let correlation = Array(256).fill(0)
+const complexMagnitude = function (c) {
+  return Math.sqrt(c[0] * c[0] + c[1] * c[1]);
+};
 
-  for (let tau = 0; tau < 256; tau++) {
-    for (let t = 1; t < n - tau; t++) {
-      correlation[tau] += (signals1[t] - M1) * (signals2[t + tau] - M2)
+var mapExponent = {},
+  exponent = function (k, N) {
+    var x = -2 * Math.PI * (k / N);
+
+    mapExponent[N] = mapExponent[N] || {};
+    mapExponent[N][k] = mapExponent[N][k] || [Math.cos(x), Math.sin(x)]; // [Real, Imaginary]
+
+    return mapExponent[N][k];
+  };
+
+var dft = function (vector) {
+  var X = [],
+    N = vector.length;
+
+  for (var k = 0; k < N; k++) {
+    X[k] = [0, 0]; //Initialize to a 0-valued complex number.
+
+    for (var i = 0; i < N; i++) {
+      var exp = exponent(k * i, N);
+      var term;
+      if (Array.isArray(vector[i])) term = complexMultiply(vector[i], exp);
+      //If input vector contains complex numbers
+      else term = complexMultiply([vector[i], 0], exp); //Complex mult of the signal with the exponential term.
+      X[k] = complexAdd(X[k], term); //Complex summation of X[k] and exponential
     }
-    correlation[tau] /= (n - 1)
   }
 
-  console.log(correlation[0])
-  return correlation
-}
+  return X;
+};
 
-// Описанная раньше нормированная корреляция:
-// Описание разницы с anomaly.io: 
+function fft(vector) {
+  var X = [],
+    N = vector.length;
 
-// Normalized Cross-Correlation
-// There are three problems with cross-correlation:
-// It is difficult to understand the scoring value.
-// Both metrics must have the same amplitude. If Graph B has the same shape as Graph A but values two times smaller, the correlation will not be detected.
-// Due to the formula, a zero value will not be taken into account.
-// To solve these problems we use normalized cross-correlation:
-
-const correlateNormal = (signals1, signals2) => {
-  const n = signals1.length
-  const M1 = mean(signals1)
-  const M2 = mean(signals2)
-
-  const V1 = variance(signals1)
-  const V2 = variance(signals2)
-
-  let correlation = Array(256).fill(0)
-
-  for (let tau = 0; tau < 256; tau++) {
-    for (let t = 1; t < n - tau; t++) {
-      correlation[tau] += (signals1[t] - M1) * (signals2[t + tau] - M2)
-    }
-    correlation[tau] /= Math.sqrt(V1 * V2) * (n - 1)
+  // Base case is X = x + 0i since our input is assumed to be real only.
+  if (N == 1) {
+    if (Array.isArray(vector[0]))
+      //If input vector contains complex numbers
+      return [[vector[0][0], vector[0][1]]];
+    else return [[vector[0], 0]];
   }
 
-  console.log(correlation[0])
-  return correlation
+  // Recurse: all even samples
+  var X_evens = fft(vector.filter(even)),
+    // Recurse: all odd samples
+    X_odds = fft(vector.filter(odd));
+
+  // Now, perform N/2 operations!
+  for (var k = 0; k < N / 2; k++) {
+    // t is a complex number!
+    var t = X_evens[k],
+      e = complexMultiply(exponent(k, N), X_odds[k]);
+
+    X[k] = complexAdd(t, e);
+    X[k + N / 2] = complexSubtract(t, e);
+  }
+
+  function even(__, ix) {
+    return ix % 2 == 0;
+  }
+
+  function odd(__, ix) {
+    return ix % 2 == 1;
+  }
+
+  return X;
 }
