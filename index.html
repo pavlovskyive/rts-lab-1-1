@@ -13,115 +13,53 @@
 </head>
 
 <body>
-    <canvas id="signals" width="800" height="400"></canvas>
-    <canvas id="dft" width="800" height="400"></canvas>
-    <canvas id="fft" width="800" height="400"></canvas>
+    <canvas id="differences" width="800" height="400"></canvas>
 
     <script>
-        let generator = new RandomSignalGenerator(8, 1200, 1024)
-        let signals = generator.generateSignals()
 
-        let dfts = dft(signals).map((complex) => complexMagnitude(complex) * 2 / 1024)
-        let ffts = fft(signals).map((complex) => complexMagnitude(complex) * 2 / 1024)
+        let differences = []
+        let labels = []
 
-        console.log(dfts)
-        console.log(ffts)
+        for (let i = 5; i <= 12; i++) {
 
-        var ctx1 = document.getElementById('signals').getContext('2d');
-        var myChart1 = new Chart(ctx1, {
-            type: 'line',
-            data: {
-                labels:  Array(signals.length).fill(""),
-                datasets: [{
-                    label: 'Random Signals 1',
-                    fill: false,
-                    lineTension: 0,
-                    data: signals,
-                    backgroundColor: ['rgba(0, 0, 0, 0)'],
-                    borderColor: ['rgba(255, 99, 132, 1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: -1,
-                            suggestedMax: 1
-                        }
+            differences.push(compare(i))
+            labels.push(i)
+
+            console.log(differences)
+
+            var ctx1 = document.getElementById('differences').getContext('2d');
+            var myChart1 = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '',
+                        fill: false,
+                        lineTension: 0,
+                        data: differences,
+                        backgroundColor: ['rgba(0, 0, 0, 0)'],
+                        borderColor: ['rgba(255, 99, 132, 1)'],
+                        borderWidth: 1
                     }]
                 },
-                elements: {
-                    point:{
-                        radius: 0
-                    }
-                }
-            }
-        });
-
-        var ctx2 = document.getElementById('dft').getContext('2d');
-        var myChart2 = new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels:  Array(dfts.length).fill(""),
-                datasets: [{
-                    label: 'DFT',
-                    fill: false,
-                    lineTension: 0,
-                    data: dfts,
-                    backgroundColor: ['rgba(0, 0, 0, 0)'],
-                    borderColor: ['rgba(255, 99, 132, 1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: 0,
-                            suggestedMax: 1
+                options: {
+                    bezierCurve: true,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                suggestedMin: -1,
+                                suggestedMax: 1
+                            }
+                        }]
+                    },
+                    elements: {
+                        point: {
+                            radius: 0
                         }
-                    }]
-                },
-                elements: {
-                    point:{
-                        radius: 0
                     }
                 }
-            }
-        });
-
-        var ctx3 = document.getElementById('fft').getContext('2d');
-        var myChart3 = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels:  Array(ffts.length).fill(""),
-                datasets: [{
-                    label: 'FFT',
-                    fill: false,
-                    lineTension: 0,
-                    data: ffts,
-                    backgroundColor: ['rgba(0, 0, 0, 0)'],
-                    borderColor: ['rgba(255, 99, 132, 1)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            suggestedMin: 0,
-                            suggestedMax: 1
-                        }
-                    }]
-                },
-                elements: {
-                    point:{
-                        radius: 0
-                    }
-                }
-            }
-        });
+            });
+        }
     </script>
 </body>
 

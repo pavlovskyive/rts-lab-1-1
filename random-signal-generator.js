@@ -134,3 +134,28 @@ function fft(vector) {
 
   return X;
 }
+
+const compare = (power) => {
+  const harmonicsNumber = 8
+  const frequencyCutoff = 1200
+
+  let discreteNumber = 2 ** power
+
+  const generator = new RandomSignalGenerator(harmonicsNumber, frequencyCutoff, discreteNumber)
+  const signals = generator.generateSignals()
+
+  let t0 = performance.now();
+  const dfts = dft(signals)
+  let t1 = performance.now();
+
+  const timeDFT = t1 - t0
+
+  t0 = performance.now();
+  const ffts = fft(signals)
+  t1 = performance.now();
+
+  let timeFFT = t1 - t0
+  timeFFT = timeFFT > 0 ? timeFFT : 1
+
+  return timeDFT / timeFFT
+}
